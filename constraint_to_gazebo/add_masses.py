@@ -33,6 +33,13 @@ def createInertial() -> etree.Element:
     return inertial
 
 def addMassesToDummyLinks(tree:etree.ElementTree)->etree.ElementTree:
+    """
+    Add masses to dummy links in the urdf tree.
+    Args:
+        tree: The urdf tree
+    Returns:
+        The urdf tree with masses added to dummy links
+    """
     root = tree.getroot()
     for link in root.findall('link'):
         if link.find('inertial') is None:

@@ -4,6 +4,15 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 def close_loop(tree:etree.ElementTree, robot:RobotModel)->etree.ElementTree:
+    """
+    close the loop of a closed loop robot defined with a tree structure and an urdf using a numerical solver to calculate a valid state
+    Args:
+        tree: The urdf tree
+        robot: The robot model
+    Returns:
+        The urdf tree with the loop closed
+        violations: A dictionary of constraint violations
+    """
     import robot_model
     root = tree.getroot()
     zero_state, success = calcValidMotionState(robot, tol=1e-11, num_iterations=100)
@@ -57,6 +66,15 @@ def close_loop(tree:etree.ElementTree, robot:RobotModel)->etree.ElementTree:
 
 
 def getConstraintTransforms(robot:RobotModel, state:np.ndarray, tree:etree.ElementTree)->dict[str, list[R, np.ndarray]]:
+    """
+    Get the constraint transforms from the robot model.
+    Args:
+        robot: The robot model
+        state: The robot state
+        tree: The urdf tree
+    Returns:
+        A dictionary of constraint transforms
+    """
     robot.updateData(state)  
     violations = {}
     root = tree.getroot()
@@ -81,6 +99,9 @@ def getConstraintTransforms(robot:RobotModel, state:np.ndarray, tree:etree.Eleme
 
 
 if __name__ == "__main__":
+    """
+    Example usage of close_loop function
+    """
     tree = etree.parse("/home/robot/test_ws/install/descriptions/share/descriptions/urdf/A_00036-02.ardf")
     robot_model = RobotModel("/home/robot/test_ws/install/descriptions/share/descriptions/urdf/A_00036-02.ardf")
     tree, violations = close_loop(tree, robot_model)

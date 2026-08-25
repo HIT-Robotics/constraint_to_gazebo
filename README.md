@@ -70,6 +70,13 @@ The `bringup` package provides a launch file (`sim.launch.py`) that demonstrates
 ros2 launch bringup sim.launch.py urdf_file:=/absolute/path/to/robot.urdf
 ```
 
+## roadmap
+
+- add joint offsets for the valid state to the defined state to use it in ROS/gazebo
+- test with more robots
+- add ROS-Connection to control the actuated joints
+- improve documentation
+
 ## Contributing
 
 Feel free to open issues or pull requests. When adding support for new constraint types, extend the `createDetachableJointElements` dispatch in `constraint_to_detachable_joint.py`.
