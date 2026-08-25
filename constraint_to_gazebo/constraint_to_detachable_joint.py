@@ -12,19 +12,24 @@ def createDeattachableJoint(constraint:etree.Element, model_name:str)->etree.Ele
     Returns:
         The detachable joint
     """
+    # add gazebo element
     gazebo = etree.Element("gazebo")
+    # create detachable joint plugin element and set values
     deattachable_joint = etree.Element("plugin")
     deattachable_joint.set('name', 'gz::sim::systems::DetachableJoint')
     deattachable_joint.set('filename', 'libgz-sim-detachable-joint-system.so')
+    # add parent link, child link and child model elements and set values
     parent_element = etree.Element("parent_link")
     parent_element.text = f'{constraint.get("name")}_parent'
     child_element = etree.Element("child_link")
     child_element.text = f'{constraint.get("name")}_child'
     child_model_element = etree.Element("child_model")
     child_model_element.text = model_name
+    # append parent link, child link and child model elements to detachable joint
     deattachable_joint.append(parent_element)
     deattachable_joint.append(child_element)
     deattachable_joint.append(child_model_element)
+    # append detachable joint to gazebo
     gazebo.append(deattachable_joint)
     return gazebo
 
@@ -99,13 +104,18 @@ def createPreserveFixedJoints(links:tuple)->tuple:
     Returns:
         A tuple of preserve fixed joints
     """
+    # create empty list for all preserved links
     preserve_links = []
     for link in links:
+        # create a gazebo element and set reference to a link
         preserve_link = etree.Element('gazebo')
         preserve_link.set('reference', link)
+        # create a preserve fixed joint element and set value to true
         preserve_fixed_joint = etree.Element('preserveFixedJoint')
         preserve_fixed_joint.text = 'true'
+        # append preserve fixed joint element to gazebo element
         preserve_link.append(preserve_fixed_joint)
+        # append gazebo element to preserve links
         preserve_links.append(preserve_link)
     return tuple(preserve_links)
 
@@ -122,13 +132,16 @@ def createFixedJoint(name:str, parent:str, child:str, xyz:str|None, rpy:str|None
     Returns:
         The fixed joint element
     """
+    # set origin if none is given
     if rpy is None:
         rpy = "0 0 0"
     if xyz is None:
         xyz = "0 0 0"
+    # create joint and set values
     joint = etree.Element('joint')
     joint.set('name', name)
     joint.set('type', 'fixed')
+    # append parent link, child link and origin elements to joint
     joint.append(createParentLink(parent))
     joint.append(createChildLink(child))
     joint.append(createOrigin(xyz, rpy))
@@ -148,15 +161,18 @@ def createContinuousJoint(name:str, parent:str, child:str, xyz:str|None, rpy:str
     Returns:
         The continuous joint element
     """
+    # set origin and axis if none is given
     if rpy is None:
         rpy = "0 0 0"
     if xyz is None:
         xyz = "0 0 0"
     if axis is None:
         axis = "0 0 1"
+    #create joint element and set values
     joint = etree.Element('joint')
     joint.set('name', name)
     joint.set('type', 'continuous')
+    # append parent link, child link, origin and axis elements to joint
     joint.append(createParentLink(parent))
     joint.append(createChildLink(child))
     joint.append(createOrigin(xyz, rpy))
@@ -177,18 +193,21 @@ def createPrismaticJoint(name:str, parent:str, child:str, xyz:str|None, rpy:str|
     Returns:
         The prismatic joint element
     """
+    # set origin and axis if none is given
     if rpy is None:
         rpy = "0 0 0"
     if xyz is None:
         xyz = "0 0 0"
     if axis is None:
         axis = "0 0 1"
+    #create joint element and set values
     joint = etree.Element('joint')
     joint.set('name', name)
     joint.set('type', 'prismatic')
+    # append elements to joint
     joint.append(createParentLink(parent))
     joint.append(createChildLink(child))
-    joint.append(createOrigin(rpy, xyz))
+    joint.append(createOrigin(xyz, rpy))
     joint.append(createAxis(axis))
     return joint
 
@@ -205,11 +224,14 @@ def createSphericalJoint(name:str, parent:str, child:str, xyz:str, rpy:str)->tup
     Returns:
         A tuple of dummy links and joints
     """
+    # create 2 dummy links
     dummy_1 = createLink(f'{name}_dummy_1')
     dummy_2 = createLink(f'{name}_dummy_2')
+    # create 3 continuous joints
     joint1 = createContinuousJoint(f'{name}_x', parent, f'{name}_dummy_1', xyz, rpy, "1 0 0")
     joint2 = createContinuousJoint(f'{name}_y', f'{name}_dummy_1', f'{name}_dummy_2', None, None, "0 1 0")
     joint3 = createContinuousJoint(f'{name}_z', f'{name}_dummy_2', child, None, None, "0 0 1")
+    # return dummy links and joints
     return dummy_1, dummy_2, joint1, joint2, joint3
 
 
@@ -223,9 +245,11 @@ def createFixedConstraint(constraint:etree.Element, model_name:str, violation:di
     Returns:
         A tuple of dummy links and joints
     """
+    # create parent and child links
     parent_link = createLink(f'{constraint.get("name")}_parent')
     child_link = createLink(f'{constraint.get("name")}_child')
 
+    # create fixed joints
     parent_joint = createFixedJoint(f'{constraint.get("name")}_parent_joint',
                                     constraint.find('parent').get('link'),
                                     parent_link.get('name'),
@@ -236,7 +260,9 @@ def createFixedConstraint(constraint:etree.Element, model_name:str, violation:di
                                     child_link.get('name'),
                                     constraint.find('child_origin').get('xyz'),
                                     constraint.find('child_origin').get('rpy'))
+    # create deattachable joint
     detachable_joint = createDeattachableJoint(constraint, model_name)
+    # return parent joint, parent link, child joint, child link and detachable joint
     return parent_joint, parent_link, child_joint, child_link, detachable_joint
 
 
@@ -250,15 +276,18 @@ def createSphericalConstraint(constraint:etree.Element, model_name:str, violatio
     Returns:
         A tuple of dummy links and joints
     """
+    # create parent and child links
     parent_link: etree.Element = createLink(f'{constraint.get("name")}_parent')
     child_link = createLink(f'{constraint.get("name")}_child')
 
+    # create violation rotation and translation
     if violation is None:
         violation_rotation = R.from_matrix(np.eye(3))
         violation_translation = np.zeros(3)
     else:
         violation_rotation = violation[0]
         violation_translation = violation[1]
+    # clac rotation and translation from violation
     child_rotation = np.array([float(x) for x in constraint.find('child_origin').get('rpy').split()])
     child_rotation = R.from_euler('xyz', child_rotation)
     child_rotation = (child_rotation * violation_rotation.inv()).inv() 
@@ -266,19 +295,24 @@ def createSphericalConstraint(constraint:etree.Element, model_name:str, violatio
     child_translation = violation_translation + child_translation
     child_rotation = ' '.join(map(str, child_rotation.as_euler('xyz')))
     child_translation = ' '.join(map(str, child_translation))
-
+    
+    # create parent joint
     parent_joint = createSphericalJoint(f'{constraint.get("name")}_parent_joint',
                                     constraint.find('parent').get('link'),
                                     parent_link.get('name'),
                                     constraint.find('parent_origin').get('xyz'),
                                     constraint.find('parent_origin').get('rpy'))
+    # create child joint
     child_joint = createFixedJoint(f'{constraint.get("name")}_child_joint',
                                         constraint.find('child').get('link'),
                                         child_link.get('name'),
                                         child_translation,
                                         child_rotation)
+    # create detachable joint
     detachable_joint = createDeattachableJoint(constraint, model_name)
+    # create preserve fixed joints
     preserve_parent = createPreserveFixedJoints((child_joint.get('name'),))
+    # return parent joint, parent link, child joint, child link and detachable joint
     return *parent_joint, parent_link, child_joint, child_link, detachable_joint, *preserve_parent
 
 
@@ -292,19 +326,23 @@ def createRevoluteConstraint(constraint:etree.Element, model_name:str, violation
     Returns:
         A tuple of dummy links and joints
     """
+    # create parent and child links
     parent_link = createLink(f'{constraint.get("name")}_parent')
     child_link = createLink(f'{constraint.get("name")}_child')
+    # create parent joint
     parent_joint = createContinuousJoint(f'{constraint.get("name")}_parent_joint',
                                     constraint.find('parent').get('link'),
                                     parent_link.get('name'),
                                     constraint.find('parent_origin').get('xyz'),
                                     constraint.find('parent_origin').get('rpy'),
                                     constraint.find('parent_axis').get('xyz'))
+    # create child joint
     child_joint = createFixedJoint(f'{constraint.get("name")}_child_joint',
                                     constraint.find('child').get('link'),
                                     child_link.get('name'),
                                     constraint.find('child_origin').get('xyz'),
                                     constraint.find('child_origin').get('rpy'))
+    # create detachable joint
     detachable_joint = createDeattachableJoint(constraint, model_name)
     return parent_joint, parent_link, child_joint, child_link, detachable_joint
 
@@ -319,8 +357,10 @@ def createPrismaticConstraint(constraint:etree.Element, model_name:str, violatio
     Returns:
         A tuple of dummy links and joints
     """
+    # create parent and child links
     parent_link = createLink(f'{constraint.get("name")}_parent')
     child_link = createLink(f'{constraint.get("name")}_child')
+    #create parent and child joints
     parent_joint = createPrismaticJoint(f'{constraint.get("name")}_parent_joint',
                                     constraint.find('parent').get('link'),
                                     parent_link.get('name'),
@@ -332,6 +372,7 @@ def createPrismaticConstraint(constraint:etree.Element, model_name:str, violatio
                                     child_link.get('name'),
                                     constraint.find('child_origin').get('xyz'),
                                     constraint.find('child_origin').get('rpy'))
+    # create detachable joint
     detachable_joint = createDeattachableJoint(constraint, model_name)
     return parent_joint, parent_link, child_joint, child_link, detachable_joint
 
@@ -346,8 +387,10 @@ def createUniversalConstraint(constraint:etree.Element, model_name:str, violatio
     Returns:
         A tuple of dummy links and joints
     """
+    # create parent and child links
     parent_link: etree.Element = createLink(f'{constraint.get("name")}_parent')
     child_link = createLink(f'{constraint.get("name")}_child')
+    #create parent and child joints
     parent_joint = createContinuousJoint(f'{constraint.get("name")}_parent_joint',
                                     constraint.find('parent').get('link'),
                                     parent_link.get('name'),
@@ -360,7 +403,9 @@ def createUniversalConstraint(constraint:etree.Element, model_name:str, violatio
                                         constraint.find('child_origin').get('xyz'),
                                         constraint.find('child_origin').get('rpy'),
                                         constraint.find('child_axis').get('xyz'))
+    # create detachable joint
     detachable_joint = createDeattachableJoint(constraint, model_name)
+    # return parent joint, parent link, child joint, child link and detachable joint
     return parent_joint, parent_link, child_joint, child_link, detachable_joint
 
 
@@ -374,6 +419,7 @@ def createDetachableJointElements(constraint:etree.Element, model_name:str, viol
     Returns:
         A tuple of dummy links and joints
     """
+    # choose the type of constraint and create elements
     match constraint.get('type'):
         case 'fixed':
             return createFixedConstraint(constraint, model_name)
@@ -397,6 +443,7 @@ def addDetachableJoints(tree:etree.ElementTree, violations:dict={})->etree.Eleme
         The urdf tree with detachable joints added
     """
     root = tree.getroot()
+   # Add detachable joints for each constraint
     for constraint in root.findall('constraint'):
         violation = violations[constraint.get('name')] if constraint.get('name') in violations else None
         for element in createDetachableJointElements(constraint, root.get('name'), violation):
@@ -404,6 +451,7 @@ def addDetachableJoints(tree:etree.ElementTree, violations:dict={})->etree.Eleme
     return tree
 
 if __name__ =="__main__":
+    # import here to prevent circular import error
     from close_loop import close_loop
     path = "/home/robot/ws/src/constraint_to_detachable_joint/example.urdf"
     tree = etree.parse(path)

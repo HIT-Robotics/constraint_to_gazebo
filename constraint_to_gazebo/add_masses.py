@@ -43,7 +43,5 @@ def addMassesToDummyLinks(tree:etree.ElementTree)->etree.ElementTree:
     root = tree.getroot()
     for link in root.findall('link'):
         if link.find('inertial') is None:
-            #if link.get('name') == "base_link" or link.get('name') == 'world':
-            #    continue
             link.append(createInertial())
     return tree
