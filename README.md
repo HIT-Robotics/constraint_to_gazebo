@@ -2,7 +2,7 @@
 
 ## Overview
 
-`constraint_to_gazebo` is a small utility package that uses the `<constraint>` elements defined in a URDF file into **Gazebo detachable joint plugins** and create a valid kinematic chain
+`constraint_to_gazebo` is a small utility package that uses the `<constraint>` elements defined in a URDF file into **Gazebo detachable joint plugins** and create a valid kinematic chain. This is only used to start a Gezbeo simulation with an ARDF in a launch file to proove, that it can be used. An import function in Gazebo might be able to use this process at startup, if the ARDF extension is accepted as pull request. 
 It parses the URDF, generates the appropriate `<plugin>` XML elements and inserts them back into the robot description, enabling the reassembling of the constraints in Gazebo simulations. Additionally it uses a numerical solver to calculate the correct joint offsets to ensure a valid closed loop. This is necessary because the offsets are not defined in the URDF file and would cause the robot to not be able to close the loop.
 The defined structure must be able to get a valid configuration in the zero position of the actuated joints marked with a `<transmission>`. The offset values are used to correct the detachable joint frames to ensure that the kinematic chain closes correctly. To ensure a good simulation, all virtual joints without an inertial element can be generated with a new inertial element to satisfy the simulation requirements.
 
@@ -10,11 +10,10 @@ The defined structure must be able to get a valid configuration in the zero posi
 
 - Supports the most common constraint types (`fixed`, `revolute`, `prismatic`, `spherical`, `universal`).
 - Generates a `gz::sim::systems::DetachableJoint` plugin for each constraint.
-- Simple Python API (`createDetachableJoints(path)`) that returns a ready‑to‑use XML string.
+- Simple Python API that adds the new Elements to a etree description and returns the adapted etree.
 - Use a numerical solver to create a valid configuration of the closed loop in the zero state of the actuated joints.
-- The offset values calculated by the solver are added to the `<plugin>` element.
 - add a world link to the URDF
-- add inertia values to virtual joints
+- add inertia values to links without any inertial values
 
 ## Installation
 
