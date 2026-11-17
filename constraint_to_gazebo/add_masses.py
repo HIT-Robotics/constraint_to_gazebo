@@ -7,7 +7,7 @@ def createMass() -> etree.Element:
     positive‑mass requirement of the URDF parser.
     """
     mass = etree.Element('mass')
-    mass.set('value', '0.1')
+    mass.set('value', '0.001')
     return mass
 
 
@@ -16,9 +16,9 @@ def createInertia() -> etree.Element:
     Diagonal entries are set to 0.01 kg·m² and off‑diagonal entries are 0.0.
     """
     inertia = etree.Element('inertia')
-    inertia.set('ixx', '0.01')
-    inertia.set('iyy', '0.01')
-    inertia.set('izz', '0.01')
+    inertia.set('ixx', '1e-6')
+    inertia.set('iyy', '1e-6')
+    inertia.set('izz', '1e-6')
     inertia.set('ixy', '0.0')
     inertia.set('ixz', '0.0')
     inertia.set('iyz', '0.0')
