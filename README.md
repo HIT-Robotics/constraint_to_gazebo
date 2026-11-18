@@ -12,7 +12,6 @@ The defined structure must be able to get a valid configuration in the zero posi
 - Generates a `gz::sim::systems::DetachableJoint` plugin for each constraint.
 - Simple Python API that adds the new Elements to a etree description and returns the adapted etree.
 - Use a numerical solver to create a valid configuration of the closed loop in the zero state of the actuated joints.
-- add a world link to the URDF
 - add inertia values to links without any inertial values
 
 ## Installation
@@ -30,7 +29,6 @@ The package depends on:
 ```python
 from constraint_to_gazebo.constraint_to_detachable_joint import addDetachableJoints
 from constraint_to_gazebo.add_masses import addMassesToDummyLinks
-from constraint_to_gazebo.add_world_link import addWorldLink
 from constraint_to_gazebo.close_loop import close_loop
 from robot_model import RobotModel
 
@@ -46,8 +44,6 @@ urdf_tree, violations = close_loop(urdf_tree, robot_model)
 urdf_tree = addDetachableJoints(urdf_tree, violations)
 # add inertia values to the virtual joints
 urdf_tree = addMassesToDummyLinks(urdf_tree)
-# create a world link and attach it to the robot
-urdf_tree = addWorldLink(urdf_tree, offset=[0, 0, 1.5])
 # create string representation of the urdf
 processed_urdf_xml = etree.tostring(urdf_tree, encoding='unicode')
 # You can write it back to a file if you wish
@@ -59,15 +55,7 @@ The function will raise `FileNotFoundError` if the supplied path does not exist.
 
 ## Integration with ROS 2 launch
 
-The `bringup` package provides a launch file (`sim.launch.py`) that demonstrates how to:
-
-1. Pass the URDF path as a launch argument.
-2. Prepare the urdef for gazebo simulation
-3. Spawn the robot in Gazebo.
-
-```bash
-ros2 launch bringup sim.launch.py urdf_file:=/absolute/path/to/robot.urdf
-```
+Use the provided functions in a `launch.py` to modify the robot description containing constraint elements. The resulting file can be loaded in gazebo.
 
 ## roadmap
 
