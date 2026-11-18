@@ -19,12 +19,6 @@ install(PROGRAMS
   RENAME ${PROJECT_NAME}
 )
 
-# Install launch files
-#install(DIRECTORY
-#  launch
-#  DESTINATION share/${PROJECT_NAME}
-#)
-
 # Install resource files
 install(DIRECTORY
   resource
