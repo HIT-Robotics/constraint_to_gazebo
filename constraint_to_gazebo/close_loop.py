@@ -25,7 +25,9 @@ def close_loop(tree:etree.ElementTree, robot:RobotModel)->etree.ElementTree:
         raise ValueError("Failed to calculate valid motion state")
     
     # update the joint values in the tree
-    for joint, valid_value in zip(root.findall('joint'), zero_state):
+    for joint_name, valid_value in zip(robot.joint_names, zero_state):
+        # get joint by name
+        joint = root.find(f".//joint[@name='{joint_name}']")
         # change nothing for fixed joints
         if joint.get('type') == 'fixed':
             continue
